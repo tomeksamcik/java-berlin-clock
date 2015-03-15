@@ -9,8 +9,19 @@ import org.jbehave.core.reporters.StoryReporterBuilder;
 import org.jbehave.core.steps.InjectableStepsFactory;
 import org.jbehave.core.steps.InstanceStepsFactory;
 import org.jbehave.core.steps.ParameterConverters;
+import org.jbehave.core.steps.guice.GuiceStepsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Scopes;
+import com.ubs.opsit.interviews.BerlinClock;
+import com.ubs.opsit.interviews.BerlinClockFixture;
+import com.ubs.opsit.interviews.Clock;
+import com.ubs.opsit.interviews.ClockTimeConverter;
+import com.ubs.opsit.interviews.TimeConverter;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -53,10 +64,13 @@ public final class BehaviouralTestEmbedder extends ConfigurableEmbedder {
 
     @Override
     public InjectableStepsFactory stepsFactory() {
-        assertThat(stepsFactory).isNotNull();
-        return stepsFactory;
+        return new GuiceStepsFactory(configuration(), createInjector());
     }
-
+     
+    private Injector createInjector() {
+        return Guice.createInjector(new StepsModule());
+    }
+    
     public Configuration configuration() {
         return new MostUsefulConfiguration()
                 .useStoryLoader(new LoadFromURL())
@@ -97,4 +111,16 @@ public final class BehaviouralTestEmbedder extends ConfigurableEmbedder {
             withPathResolver(new FilePrintStreamFactory.ResolveToSimpleName());
         }
     }
+    
+    public static class StepsModule extends AbstractModule {
+    	 
+        @Override
+        protected void configure() {
+            bind(BerlinClockFixture.class).in(Scopes.SINGLETON);
+            bind(TimeConverter.class).to(ClockTimeConverter.class);
+            bind(Clock.class).to(BerlinClock.class);
+        }
+     
+    }    
+    
 }
