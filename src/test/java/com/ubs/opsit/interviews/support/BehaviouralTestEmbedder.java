@@ -1,5 +1,13 @@
 package com.ubs.opsit.interviews.support;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.jbehave.core.io.CodeLocations.codeLocationFromClass;
+import static org.jbehave.core.reporters.Format.CONSOLE;
+import static org.jbehave.core.reporters.Format.HTML;
+
+import java.text.SimpleDateFormat;
+import java.util.List;
+
 import org.jbehave.core.ConfigurableEmbedder;
 import org.jbehave.core.configuration.Configuration;
 import org.jbehave.core.configuration.MostUsefulConfiguration;
@@ -9,16 +17,17 @@ import org.jbehave.core.reporters.StoryReporterBuilder;
 import org.jbehave.core.steps.InjectableStepsFactory;
 import org.jbehave.core.steps.InstanceStepsFactory;
 import org.jbehave.core.steps.ParameterConverters;
+import org.jbehave.core.steps.guice.GuiceStepsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.jbehave.core.io.CodeLocations.codeLocationFromClass;
-import static org.jbehave.core.reporters.Format.CONSOLE;
-import static org.jbehave.core.reporters.Format.HTML;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Scopes;
+import com.ubs.opsit.interviews.BerlinClockFixture;
+import com.ubs.opsit.interviews.BerlinClockTimeConverter;
+import com.ubs.opsit.interviews.TimeConverter;
 
 /**
  * A class to fully encapsulates all of the JBehave plumbing behind a builder style API.  The expected use for this would be:
@@ -53,10 +62,13 @@ public final class BehaviouralTestEmbedder extends ConfigurableEmbedder {
 
     @Override
     public InjectableStepsFactory stepsFactory() {
-        assertThat(stepsFactory).isNotNull();
-        return stepsFactory;
+        return new GuiceStepsFactory(configuration(), createInjector());
     }
-
+     
+    private Injector createInjector() {
+        return Guice.createInjector(new StepsModule());
+    }
+    
     public Configuration configuration() {
         return new MostUsefulConfiguration()
                 .useStoryLoader(new LoadFromURL())
@@ -97,4 +109,15 @@ public final class BehaviouralTestEmbedder extends ConfigurableEmbedder {
             withPathResolver(new FilePrintStreamFactory.ResolveToSimpleName());
         }
     }
+    
+    public static class StepsModule extends AbstractModule {
+    	 
+        @Override
+        protected void configure() {
+            bind(BerlinClockFixture.class).in(Scopes.SINGLETON);
+            bind(TimeConverter.class).to(BerlinClockTimeConverter.class);
+        }
+     
+    }    
+    
 }
