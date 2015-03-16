@@ -31,13 +31,10 @@ public class ClockTimeConverter implements TimeConverter {
 
 	@Override
 	public String convertTime(String aTime) {		
-		if (!aTime.isEmpty()) {		
-			setClockTime(aTime);		
-			
-			LOG.debug(clock.toString());
-		} else {
-			LOG.error("Input string empty");
-		}
+		setClockTime(aTime);		
+		
+		LOG.debug(clock.toString());
+
 		return clock.render();		
 	}
 	
@@ -53,7 +50,7 @@ public class ClockTimeConverter implements TimeConverter {
 		if (!aTime.equals("24:00:00")) {
 			LocalTime time = LocalTime.parse(aTime, DateTimeFormatter.ISO_LOCAL_TIME.withResolverStyle(ResolverStyle.SMART));
 			
-			clock.setTime(time);
+			clock.setTime(time.getHour(), time.getMinute(), time.getSecond());
 		} else {
 			clock.setTime(24, 0, 0);
 		}

@@ -44,15 +44,6 @@ public class BerlinClock implements Clock {
 	private Lamp[] bottomMinutes = {Lamp.OFF, Lamp.OFF, Lamp.OFF, Lamp.OFF};
 
 	@Override
-	public void setTime(LocalTime time) {
-		top = parseSeconds(time.getSecond());
-		topHours = parseTopHours(time.getHour());
-		bottomHours = parseBottomHours(time.getHour());
-		topMinutes = parseTopMinutes(time.getMinute());
-		bottomMinutes = parseBottomMinutes(time.getMinute());
-	}
-
-	@Override
 	public void setTime(int hour, int minute, int second) {
 		top = parseSeconds(second);
 		topHours = parseTopHours(hour);
@@ -190,7 +181,7 @@ public class BerlinClock implements Clock {
 				if (!minutes ||
 						(minutes &&
 							higherOrder &&
-							(i + 1) % 3 == 0)) {
+							isQuarter(i))) {
 					lamps[i] = Lamp.RED;
 				} else {
 					lamps[i] = Lamp.YELLOW;
@@ -201,5 +192,15 @@ public class BerlinClock implements Clock {
 		}
 		return lamps;
 	}
+	
+	/**
+	 * Indicates if a higher order minute lamp denotes 15, 30 or 45 minutes
+	 * 
+	 * @param minute position of a higher order minute lamp
+	 * @return true if lamp denotes 15, 30, 45 minutes, false otherwise 
+	 */
+	private boolean isQuarter(int minute) {
+		return (minute + 1) % 3 == 0;		
+	}	
 	
 }
